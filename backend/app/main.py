@@ -3,19 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 import uuid
+import openai
 
 from .document_processor import DocumentProcessor
 from .vector_store import VectorStore
 from .llm_service import LLMService
 
 load_dotenv()
-
+openai.api_key = os.getenv("OPENAI_API_KEY")
 app = FastAPI()
 
 # Enable CORS for the Frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,   # allow cookies/headers like auth
     allow_methods=["*"],      # for http meths like GET, POST
     allow_headers=["*"],      # allow custom headers like Content-Type

@@ -77,23 +77,27 @@ class LLMService:
         except Exception as e:
             return [{"error": f"Could not generate quiz: {str(e)}"}]
         
-    def _parse_quiz_response(self, response: str) -> List[dict]:
-         """Parse quiz response into structured format"""
-         questions = []
-         current_question = {}
-         lines = response.strip().split('\n')
-         for line in lines:
-             line = line.strip()
-             if line.startswith('Question:'):
-                 if current_question:
-                     questions.append(current_question)
-                 current_question = {'question': line[9:]. strip(), 'options': {}}
-             elif line.startswith(('A)', 'B)', 'C)', 'D)')):
-                 letter = line[0]
-                 text = line[3:].strip()
-                 current_question['options'][letter] = text
-         if current_question:
-             questions.append(current_question)
-
-         return questions
+    def parse_quiz_response(self, response: str) -> List[dict]:
+        """Parse quiz response into structured format"""
+        questions = []
+        current_question = {}
+        lines = response.strip().split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if line.startswith('Question:'):
+                if current_question:
+                    questions.append(current_question)
+                current_question = {'question': line[9:].strip(), 'options': {}, 'correct': None}
+            elif line.startswith(('A)', 'B)', 'C)', 'D)')):
+                letter = line[0]
+                text = line[3:].strip()
+                current_question['options'][letter] = text
+            elif line.lower().startswith('correct answer:'):
+                current_question['correct'] = line.split(':')[1].strip()
+        
+        if current_question:
+            questions.append(current_question)
+        
+        return questions
 

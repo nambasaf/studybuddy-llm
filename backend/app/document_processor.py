@@ -18,10 +18,10 @@ class DocumentProcessor:
     
     def clean_text(self, text: str) -> str:
         """Clean text and normalize it"""
-        # Remove extra white spaces and new lines
+        # Collapse extra spaces
         text = re.sub(r'\s+', ' ', text)
-        # Remove special characters but keep basic punctuation
-        text = re.sub(r'[\w\s.,!?;:-]', '', text)
+        # Remove ONLY weird non-text symbols (keep words and punctuation)
+        text = re.sub(r'[^a-zA-Z0-9\s.,!?;:-]', '', text)
         return text.strip()
     
     def chunk_text(self, text: str) -> List[str]:
@@ -41,6 +41,8 @@ class DocumentProcessor:
         """Main processing pipeline"""
         # Extract the text
         raw_text = self.extract_text_from_pdf(pdf_file)
+        
+
         # clean the text
         clean_text = self.clean_text(raw_text)
         # create chunks
