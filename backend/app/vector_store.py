@@ -22,49 +22,49 @@ class VectorStore:
         if dim != 384: 
             raise ValueError(f"Index dimension={dim} does not match model ({model_name}) dim=384")
         
-        def embed_text(self, text: str) -> List[float]:
-            """Convert text to embedding"""
-            return self.encoder.encode(text).tolist()
+    def embed_text(self, text: str) -> List[float]:
+        """Convert text to embedding"""
+        return self.encoder.encode(text).tolist()
+    
+    def store_chunks(self, chunks: List[str], document_id: str):
+        """Store document chunks in vector database"""
+        vectors = []
         
-        def store_chunks(self, chunks: List[str], document_id: str):
-            """Store document chunks in vector database"""
-            vectors = []
-            
-            for i, chunk in enumerate(chunks):
-                chunk_id = f"{document_id}_{i}"
-                embedding = self.embed_text(chunk)
+        for i, chunk in enumerate(chunks):
+            chunk_id = f"{document_id}_{i}"
+            embedding = self.embed_text(chunk)
 
-                vectors.append({
-                    "id": chunk_id,
-                    "values": embedding,
-                    "metadata": {
-                        "text": chunk,
-                        "document_id": document_id,
-                        "chunk_index": i 
-                    }
-                })
-            # Upload to Pinecone in batches
-            batch_size = 100
-            for i in range(0, len(vectors), batch_size):
-                batch = vectors[i:i + batch_size]
-                self.index.upsert(vectors=batch)
-        
-        def search_similar(self, query: str, top_k: int = 5) -> List[dict]:
-            """Return the top 5 most similar chunks to the query with text + score"""
-            query_embedding = self.embed_text(query)
-            results = self.index.query(
-                vector=query_embedding,
-                top_k=top_k,
-                include_metadata=True
-            )
-
-            return [
-                {
-                    "text": match["metadata"]["text"], 
-                    "score": match["score"]
+            vectors.append({
+                "id": chunk_id,
+                "values": embedding,
+                "metadata": {
+                    "text": chunk,
+                    "document_id": document_id,
+                    "chunk_index": i 
                 }
-                for match  in results["matches"]
-                
-            ]
+            })
+        # Upload to Pinecone in batches
+        batch_size = 100
+        for i in range(0, len(vectors), batch_size):
+            batch = vectors[i:i + batch_size]
+            self.index.upsert(vectors=batch)
+    
+    def search_similar(self, query: str, top_k: int = 5) -> List[dict]:
+        """Return the top 5 most similar chunks to the query with text + score"""
+        query_embedding = self.embed_text(query)
+        results = self.index.query(
+            vector=query_embedding,
+            top_k=top_k,
+            include_metadata=True
+        )
+
+        return [
+            {
+                "text": match["metadata"]["text"], 
+                "score": match["score"]
+            }
+            for match  in results["matches"]
+            
+        ]
 
 
